@@ -1,0 +1,18 @@
+open joonho
+open vertex list
+277.0, 589.0
+277.0, 369.0
+277.0, 185.0
+472.0, 185.0
+472.0, 365.0
+472.0, 599.0
+close vertex list
+open edge list
+0, 1
+1, 2
+2, 3
+3, 4
+4, 5
+5, 0
+close edge list
+close joonho
