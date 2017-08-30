@@ -1,12 +1,14 @@
 open joonho
 open vertex list
-476.0, 605.0
-305.0, 305.0
-653.0, 381.0
+317.0, 536.0
+317.0, 317.0
+605.0, 317.0
+605.0, 534.0
 close vertex list
 open edge list
 0, 1
 1, 2
-2, 0
+2, 3
+3, 0
 close edge list
 close joonho

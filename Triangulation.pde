@@ -28,16 +28,15 @@ void initControllers() {
     triangulator = new Triangulator();
 }
 
-
 void draw() {
-    background(WHITE);
-    noStroke();
-    noFill();
-
+    background(WHITE); noStroke(); noFill();
+    
     displayController.displayText();
 
-    scale(1, -1);
-    translate(0, -height);
+    scale(1, -1); translate(0, -height);
+    
+    fill(YELLOW); ellipse(100, 100, 2*VERTEX_RADIUS, 2*VERTEX_RADIUS);
+    fill(BROWN); ellipse(1000, 700, 2*VERTEX_RADIUS, 2*VERTEX_RADIUS);
     
     displayController.display();
 }

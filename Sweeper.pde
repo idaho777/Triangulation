@@ -50,6 +50,7 @@ public class Sweeper {
         println("loopMonotone end");
     }
 
+    //
     public List<SweepVertex> setupVertices(DFace face) {
         List<SweepVertex> list = new ArrayList<SweepVertex>();
         DHalfEdge currEdge = face.outerEdge;
@@ -118,14 +119,18 @@ public class Sweeper {
         if (!isBelowNext && !isBelowPrev) {
             if (cross.z > 0) {
                 return SweepVertexType.START;
-            } else {
+            } else if (cross.z < 0){
                 return SweepVertexType.SPLIT;
+            } else {
+                return SweepVertexType.REGULAR;
             }
         } else if (isBelowNext && isBelowPrev) {
             if (cross.z > 0) {
                 return SweepVertexType.END;
-            } else {
+            } else if (cross.z < 0) {
                 return SweepVertexType.MERGE;
+            } else {
+                return SweepVertexType.REGULAR;
             }
         } else {
             return SweepVertexType.REGULAR;
@@ -133,6 +138,8 @@ public class Sweeper {
     }
 
     public void handleSweepVertex(SweepVertex v) {
+        println("  Handle sweep: " + v);
+        println("     bst: " + bst);
         switch (v.type) {
             case START:
                 handleStart(v);
@@ -160,6 +167,7 @@ public class Sweeper {
 
     public void handleEnd(SweepVertex vi) {
         SweepEdge eim1 = vi.prevEdge;
+        println("       " + eim1);
         if (eim1.helper.type == SweepVertexType.MERGE) {
             deList.addEdge(eim1.helper.id, vi.id);
         }
@@ -203,6 +211,7 @@ public class Sweeper {
             ei.helper = vi;
         } else {
             SweepEdge ej = findLeftSweepEdge(vi);
+            println("      " + ej);
             if (ej.helper.type == SweepVertexType.MERGE) {
                 deList.addEdge(ej.helper.id, vi.id);
                 // connect (vi, ej.helper)
@@ -215,7 +224,7 @@ public class Sweeper {
         PVector c = v.coord;
 
         float minX = 100;
-        SweepEdge left = null;
+        SweepEdge left = bst.get(0);
         for (SweepEdge e : bst) {
             float dx = e.getXInterect(c.y) - c.x;
             if (dx < 0) {
@@ -274,22 +283,24 @@ public class SweepVertex implements Comparable<SweepVertex>{
 
     @Override
     public int compareTo(SweepVertex o) {
-        float dy = o.coord.y - this.coord.y;
+        if (this.coord.y == o.coord.y && this.coord.x == o.coord.x)
+            return 0;
+        else if (isBelow(o))
+            return 1;
+        else
+            return -1;
+        //float dy = o.coord.y - this.coord.y;
 
-        if (dy == 0) {
-            return (int) (this.coord.x - o.coord.x);
-        } else {
-            return (int) dy;
-        }
+        //if (dy == 0) {
+        //    return (int) (this.coord.x - o.coord.x);
+        //} else {
+        //    return (int) dy;
+        //}
     }
 
     public boolean isBelow(SweepVertex o) {
-        double diff = this.coord.y - o.coord.y;
-        if (diff == 0.0) {
-            return this.coord.x > o.coord.x;
-        } else {
-            return diff < 0;
-        }
+        return this.coord.y < o.coord.y || 
+              (this.coord.y == o.coord.y && this.coord.x > o.coord.x);
     }
 
     /**
@@ -329,7 +340,7 @@ public class SweepVertex implements Comparable<SweepVertex>{
 
     @Override
     public String toString() {
-        return "[" + coord.x + " " + coord.y + "]";
+        return "[" + coord.x + " " + coord.y + ", " + type + "]";
     }
 } 
 
@@ -356,12 +367,10 @@ public class SweepEdge {
     }
 
     public boolean interiorToRight() {
-        float dy = prevVertex.coord.y - nextVertex.coord.y;
-
-        if (dy == 0) {
-            return nextVertex.coord.x - prevVertex.coord.x < 0;
+        if (prevVertex.coord.y == nextVertex.coord.y) {
+            return nextVertex.coord.x > prevVertex.coord.x;
         } else {
-            return dy > 0;
+            return prevVertex.coord.y > nextVertex.coord.y;
         }
     }
 
@@ -378,7 +387,7 @@ public class SweepEdge {
         line(u.x, u.y, v.x, v.y);
     }
 
-        @Override
+    @Override
     public String toString() {
         return "[" + prevVertex + ", " + nextVertex + "]";
     }
