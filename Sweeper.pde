@@ -3,34 +3,42 @@
 public class Sweeper {
     DoublyEdgeList deList;
     List<SweepVertex> verts;
-
     List<SweepEdge> bst;
 
     public Sweeper(List<List<PVector>> init) {
         println("Sweeper initialized");
-        deList = new DoublyEdgeList(init);
+        deList = new DoublyEdgeList();
         verts = new ArrayList<SweepVertex>();
         bst = new ArrayList<SweepEdge>();
+        deList.initialize(init);
     }
 
     PriorityQueue<SweepVertex> pq;
     public void makeMonotone() {
         println("MAKE MONOTONE");
         List<DFace> oldFaces = new ArrayList<DFace>(deList.faces);
+        List<SweepVertex> sVerts = new ArrayList<SweepVertex>();
 
-        for (int i = 0; i < oldFaces.size(); ++i) {
-            if (oldFaces.get(i).outerEdge == null) continue;
-            DFace currFace = oldFaces.get(i);
-            List<SweepVertex> sVerts = setupVertices(currFace);
-            verts = sVerts;
+        // Add most outer polygon face
+        DFace currFace = oldFaces.get(0);
+        sVerts.addAll(setupVertices(currFace, false));
 
-            pq = new PriorityQueue<SweepVertex>(sVerts);
+        print(oldFaces);
+        // Adding holes faces
+        for (int i = 1; i < oldFaces.size(); ++i) {
+            if (oldFaces.get(i).outerEdge == null) continue; // Outside Face
+            currFace = oldFaces.get(i);
+            sVerts.addAll(setupVertices(currFace, true));
+        }
+        verts = sVerts;
+
+        pq = new PriorityQueue<SweepVertex>(sVerts);
+        if (!DEBUG) {
             while (!pq.isEmpty()) {
                 SweepVertex curr = pq.poll();
                 handleSweepVertex(curr);
             }
         }
-        println("End MONOTONE");
     }
 
     public List<MonotonePolygon> getMonotonePolygons() {
@@ -46,18 +54,21 @@ public class Sweeper {
             handleSweepVertex(currSweepVertex);
         } else {
             currSweepVertex = null;
+            println("loopMonotone end");
         }
-        println("loopMonotone end");
     }
 
     //
-    public List<SweepVertex> setupVertices(DFace face) {
+    public List<SweepVertex> setupVertices(DFace face, boolean isHole) {
         List<SweepVertex> list = new ArrayList<SweepVertex>();
         DHalfEdge currEdge = face.outerEdge;
+        if (isHole) currEdge = currEdge.twin;
+
+        Set<DHalfEdge> visited = new HashSet<DHalfEdge>();
 
         SweepVertex oldVertex = null;
         SweepEdge   oldEdge = null;
-        do {
+        while (!visited.contains(currEdge)) {
             SweepVertex v = new SweepVertex();
             v.coord = currEdge.origin.coord;
             v.nextVertex = null;
@@ -81,10 +92,11 @@ public class Sweeper {
             }
 
             list.add(v);
+            visited.add(currEdge);
             oldVertex = v;
             oldEdge = e;
             currEdge = currEdge.next;
-        } while (!currEdge.equals(face.outerEdge));
+        }
 
         SweepVertex firstVertex = list.get(0);
         SweepEdge firstEdge = firstVertex.nextEdge;
@@ -110,7 +122,6 @@ public class Sweeper {
 
         PVector nextVector = PVector.sub(next.coord, v.coord);
         PVector prevVector = PVector.sub(v.coord, prev.coord);
-
         PVector cross = prevVector.cross(nextVector);
 
         boolean isBelowNext = v.isBelow(next);
@@ -138,8 +149,6 @@ public class Sweeper {
     }
 
     public void handleSweepVertex(SweepVertex v) {
-        println("  Handle sweep: " + v);
-        println("     bst: " + bst);
         switch (v.type) {
             case START:
                 handleStart(v);
@@ -167,8 +176,8 @@ public class Sweeper {
 
     public void handleEnd(SweepVertex vi) {
         SweepEdge eim1 = vi.prevEdge;
-        println("       " + eim1);
         if (eim1.helper.type == SweepVertexType.MERGE) {
+            println("       ", "Add Edge");
             deList.addEdge(eim1.helper.id, vi.id);
         }
         bst.remove(eim1);
@@ -186,12 +195,14 @@ public class Sweeper {
     public void handleMerge(SweepVertex vi) {
         SweepEdge eim1 = vi.prevEdge;
         if (eim1.helper.type == SweepVertexType.MERGE) {
+            println("       ", "Add Edge");
             deList.addEdge(eim1.helper.id, vi.id);
             // connect (vi, eim1.helper);
         }
         bst.remove(eim1);
         SweepEdge ej = findLeftSweepEdge(vi);
         if (ej.helper.type == SweepVertexType.MERGE) {
+            println("       ", "Add Edge");
             deList.addEdge(ej.helper.id, vi.id);
             // connect (vi, ej.helper)
         }
@@ -200,6 +211,7 @@ public class Sweeper {
 
     public void handleRegular(SweepVertex vi) {
         if (vi.interiorToRight()) {
+            println("       ", "interiorToRight");
             SweepEdge eim1 = vi.prevEdge;
             if (eim1.helper.type == SweepVertexType.MERGE) {
                 deList.addEdge(eim1.helper.id, vi.id);
@@ -210,8 +222,8 @@ public class Sweeper {
             bst.add(ei);
             ei.helper = vi;
         } else {
+            println("       ", "interior not to Right");
             SweepEdge ej = findLeftSweepEdge(vi);
-            println("      " + ej);
             if (ej.helper.type == SweepVertexType.MERGE) {
                 deList.addEdge(ej.helper.id, vi.id);
                 // connect (vi, ej.helper)
@@ -240,22 +252,25 @@ public class Sweeper {
 
 
     public void draw() {
-        if (displayController.drawState  == 1) {
-            drawDEList();
-        } else if (displayController.drawState  == 2) {
-            drawSweep();
-        }
+        if (displayController.drawState == 1 ||
+            displayController.drawState == 4) drawDEList();
+        if (displayController.drawState == 2) drawDEListArrows();
+        if (displayController.drawState == 3) drawSweep();
 
-        // if (currSweepVertex != null) {
-        //     stroke(GREEN);
-        //     strokeWeight(3);
-        //     line(-100, currSweepVertex.coord.y, 2000, currSweepVertex.coord.y);
-        //     ellipse(currSweepVertex.coord.x, currSweepVertex.coord.y, 2*VERTEX_RADIUS, 2*VERTEX_RADIUS);
-        // }
+        if (DEBUG && currSweepVertex != null) {
+            stroke(GREEN);
+            strokeWeight(3);
+            line(-100, currSweepVertex.coord.y, 2000, currSweepVertex.coord.y);
+        }
     }
 
     public void drawDEList() {
         deList.draw();
+    }
+
+    public void drawDEListArrows() {
+        deList.draw();
+        deList.drawArrows();
     }
 
     public void drawSweep() {
@@ -264,7 +279,15 @@ public class Sweeper {
     }
 
     public void handleKey() {
-        if (key == 'n') loopMonotone();
+        if (DEBUG && key == 'n') {
+            if (!pq.isEmpty()) {
+                loopMonotone();
+            } else {
+                currSweepVertex = null;
+            }
+            
+            deList.triangulateMonotonePolygon();
+        }
         if (key == 'u') deList.triangulateMonotonePolygons();
     }
 }
@@ -289,13 +312,6 @@ public class SweepVertex implements Comparable<SweepVertex>{
             return 1;
         else
             return -1;
-        //float dy = o.coord.y - this.coord.y;
-
-        //if (dy == 0) {
-        //    return (int) (this.coord.x - o.coord.x);
-        //} else {
-        //    return (int) dy;
-        //}
     }
 
     public boolean isBelow(SweepVertex o) {
@@ -315,7 +331,7 @@ public class SweepVertex implements Comparable<SweepVertex>{
         strokeWeight(1);
         switch (type) {
             case START:
-                noFill();
+                fill(WHITE);
                 rect(coord.x-8, coord.y-8, 16, 16);
                 break;
             case END:
@@ -327,7 +343,7 @@ public class SweepVertex implements Comparable<SweepVertex>{
                 ellipse(coord.x, coord.y, 2*VERTEX_RADIUS, 2*VERTEX_RADIUS);
                 break;
             case SPLIT:
-                fill(BLACK);
+                fill(WHITE);
                 triangle(coord.x-8, coord.y-4, coord.x+8, coord.y-4, coord.x, coord.y+8);
                 break;
             case MERGE:

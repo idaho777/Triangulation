@@ -20,18 +20,29 @@ public class FileController {
     }
 
     public void readDefaults() {
-        if (key == '1') readEdit(new File( sketchPath() + "/examples/" + "1.joonho" ));
-        if (key == '2') readEdit(new File( sketchPath() + "/examples/" + "2.joonho" ));
-        if (key == '3') readEdit(new File( sketchPath() + "/examples/" + "3.joonho" ));
-        if (key == '4') readEdit(new File( sketchPath() + "/examples/" + "4.joonho" ));
-        if (key == '5') readEdit(new File( sketchPath() + "/examples/" + "5.joonho" ));
-        if (key == '6') readEdit(new File( sketchPath() + "/examples/" + "6.joonho" ));
-        if (key == '7') readEdit(new File( sketchPath() + "/examples/" + "7.joonho" ));
-        if (key == '8') readEdit(new File( sketchPath() + "/examples/" + "8.joonho" ));
-        if (key == '9') readEdit(new File( sketchPath() + "/examples/" + "9.joonho" ));
-        if (key == '0') readEdit(new File( sketchPath() + "/examples/" + "0.joonho" ));
-    }
+        // if (key == '1') readEdit(new File( sketchPath() + "/examples/" + "1.joonho" ));
+        // if (key == '2') readEdit(new File( sketchPath() + "/examples/" + "2.joonho" ));
+        // if (key == '3') readEdit(new File( sketchPath() + "/examples/" + "3.joonho" ));
+        // if (key == '4') readEdit(new File( sketchPath() + "/examples/" + "4.joonho" ));
+        // if (key == '5') readEdit(new File( sketchPath() + "/examples/" + "5.joonho" ));
+        // if (key == '6') readEdit(new File( sketchPath() + "/examples/" + "6.joonho" ));
+        // if (key == '7') readEdit(new File( sketchPath() + "/examples/" + "7.joonho" ));
+        // if (key == '8') readEdit(new File( sketchPath() + "/examples/" + "8.joonho" ));
+        // if (key == '9') readEdit(new File( sketchPath() + "/examples/" + "9.joonho" ));
+        // if (key == '0') readEdit(new File( sketchPath() + "/examples/" + "0.joonho" ));
 
+
+        if (key == '1') readEdit(new File( sketchPath() + "/examples/" + "hole1.joonho" ));
+        if (key == '2') readEdit(new File( sketchPath() + "/examples/" + "hole2.joonho" ));
+        if (key == '3') readEdit(new File( sketchPath() + "/examples/" + "hole3.joonho" ));
+        if (key == '4') readEdit(new File( sketchPath() + "/examples/" + "hole4.joonho" ));
+        if (key == '5') readEdit(new File( sketchPath() + "/examples/" + "hole5.joonho" ));
+        if (key == '6') readEdit(new File( sketchPath() + "/examples/" + "hole6.joonho" ));
+        if (key == '7') readEdit(new File( sketchPath() + "/examples/" + "hole7.joonho" ));
+        if (key == '8') readEdit(new File( sketchPath() + "/examples/" + "hole8.joonho" ));
+        if (key == '9') readEdit(new File( sketchPath() + "/examples/" + "hole9.joonho" ));
+        if (key == '0') readEdit(new File( sketchPath() + "/examples/" + "jagHoles.joonho" ));
+    }
 
     void displayText() {
         displaySettings();
@@ -54,7 +65,6 @@ void readEditSelected(File selection) {
         println("Window was closed or the user hit cancel.");
         return;
     }
-
     readEdit(selection);
 }
 
@@ -69,18 +79,18 @@ void writeEditSelected(File selection) {
 
 // READ JOONHO FILE
 void readEdit(File selection) {
-    println("Writing joonho");
-    BufferedReader reader = createReader(selection);
+    println("Reading joonho");
     try {
+        BufferedReader reader = createReader(selection);
+        setup();
         String open = reader.readLine();
         List<Vertex> v = readVertex(reader);
         List<Edge>   e = readEdge(reader, v);
 
-        setup();
         polyController.vertices = v;
         polyController.edges    = e;
-    } catch (IOException ee) {
-        ee.printStackTrace();
+    } catch (Exception fe) {
+        println("Reading file went wrong.");
     }
 
     currFile = selection.getName();

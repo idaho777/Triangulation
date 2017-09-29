@@ -50,7 +50,7 @@ public class MonotoneVertex {
 
     @Override
     public String toString() {
-        return "[" + data.toString() + ": " + chainType + "]";
+        return "[" + data.toString() + " -- " + chainType + "]";
     }
 }
 

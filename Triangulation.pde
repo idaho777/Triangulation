@@ -1,5 +1,5 @@
 
-DoublyEdgeList dEList;
+// DoublyEdgeList dEList;
 
 DisplayController displayController;
 EditController    editController;
@@ -7,17 +7,22 @@ FileController    fileController;
 PolyController    polyController;
 Triangulator      triangulator;
 
+boolean DEBUG = false;
+
 void settings() {
     size(1024,768,P2D);
 }
 
 void setup() {
     initControllers();
+    resetCounts();
+}
 
+void resetCounts() {
     ID_COUNT = 0;
     DID_COUNT = 0;
     DFACEID_COUNT = 0;
-    DEDGEID_COUNT = 0;
+    DEDGEID_COUNT = 0;    
 }
 
 void initControllers() {
@@ -30,13 +35,8 @@ void initControllers() {
 
 void draw() {
     background(WHITE); noStroke(); noFill();
-    
     displayController.displayText();
 
     scale(1, -1); translate(0, -height);
-    
-    fill(YELLOW); ellipse(100, 100, 2*VERTEX_RADIUS, 2*VERTEX_RADIUS);
-    fill(BROWN); ellipse(1000, 700, 2*VERTEX_RADIUS, 2*VERTEX_RADIUS);
-    
     displayController.display();
 }

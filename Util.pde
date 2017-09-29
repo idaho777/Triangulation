@@ -23,15 +23,30 @@ final color SKYBLUE  = color(0, 204, 255);
 final color GROUNDGREEN  = color(166,225,86);
 final color WALLGRAY = color(134,125,140);
 
-// rotate v around axis by ang radians.
-PVector rotate(PVector v, PVector _axis, float angle)
-{
-    //use normalised values
-    PVector axis = _axis.copy().normalize();
-    PVector vNorm = v.copy().normalize();
-    float pMag = axis.dot(v);
-    PVector parallel = PVector.mult(axis, pMag); //multiply all elements by a value
-    PVector perp = PVector.sub(v, parallel);    //subtract one PVector from another
-    PVector cross = v.cross(axis); //cross product
-    return PVector.add(parallel,PVector.add(PVector.mult(cross,sin(-angle)), PVector.mult(perp,cos(-angle))));
-} 
+float det(PVector u, PVector v) {
+  PVector uR = new PVector(-u.y, u.x);
+  return uR.dot(v);
+}
+    
+boolean vecIntersects(PVector v, PVector vec, PVector a, PVector b) {
+    PVector v1 = vec.copy();
+    PVector v2 = PVector.sub(b, a);
+    PVector v3 = PVector.sub(a, v);
+
+    float s = v3.cross(v2).dot(v1.cross(v2)) / v1.cross(v2).magSq();
+
+    if (s >= 0 && s <= 1) {
+        PVector i = PVector.add(v, PVector.mult(v1, s));
+        if (sq(dist(i.x, i.y, a.x, a.y)) + sq(dist(i.x, i.y, b.x, b.y)) <= v2.magSq() + 0.005)
+            return true;
+    }
+    return false;
+}
+
+float clockwiseAngle(PVector b, PVector a) {
+    float dot = PVector.dot(a, b);
+    float det = a.x*b.y - a.y*b.x;
+    float angle = atan2(det, dot);
+    if (angle < 0) return angle + TAU;
+    return angle;
+}

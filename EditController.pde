@@ -13,6 +13,7 @@ char currentKey;
 void keyPressed() {
     currentKey = key;
     if (currentKey == '-') setup();
+    if (currentKey == 'D') DEBUG = !DEBUG;
     displayController.handleKey();
     fileController.handleKey();
     polyController.handleKey();

@@ -4,7 +4,6 @@ public class PolyController {
     public List<Vertex> vertices;
     public List<Edge> edges;
 
-
     public PolyController() {
         vertices = new ArrayList<Vertex>();
         edges = new ArrayList<Edge>();
@@ -39,7 +38,6 @@ public class PolyController {
                     edges.remove(i);
                 }
             }
-            
             // Remove Vertex
             vertices.remove(toRemoveIndex);
         }
@@ -91,7 +89,7 @@ public class PolyController {
 
     public void triangulate() {
         if (vertices != null && vertices.size() > 0)
-            triangulator.triangulate(vertices.get(0));
+            triangulator.triangulate(vertices, edges);
     }
 
     public void handleMousePressed() {
@@ -155,10 +153,10 @@ public class Vertex {
         fill(RED);
         ellipse(coord.x, coord.y, 2*VERTEX_RADIUS, 2*VERTEX_RADIUS);
 
-        // textSize(20);
-        // textAlign(RIGHT, TOP);
-        // fill(BLACK);
-        // text(id, coord.x, coord.y);
+        textSize(20);
+        textAlign(RIGHT, TOP);
+        fill(BLACK);
+        text(id, coord.x, coord.y);
     }
 
     @Override
